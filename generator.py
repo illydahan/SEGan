@@ -113,7 +113,6 @@ class Generator(nn.Module):
     def forward(self, x, noise):
         enc_out = self.encoder(x)
         
-        #noise = torch.normal(0 , 1, (enc_out.shape[0], 1024, 8)).to(device)
         out = torch.cat((noise, enc_out), 1)
         
         out = self.decoder(out, self.encoder.skips)
@@ -148,23 +147,26 @@ class Generator(nn.Module):
 
     def clean(self, noisy_waveform, device='cpu'):
         cleaned_segments = []
+        
         win_len = 2 << 13
+        win_gap = 2 << 13
         
-        win_gap = (2 << 13)
-        noisy_sample_segments = [noisy_waveform[i:i+win_len] for i in range(0, noisy_waveform.shape[0] - win_len, win_gap)]
+        noisy_sample_segments = [noisy_waveform[i: i+win_len] for i in range(0, noisy_waveform.shape[0] - win_len, win_gap)]
 
-        
-        if noisy_waveform.shape[0] % win_len != 0:
-            #res = noisy_waveform.shape[0] % win_len
-            last_offset = noisy_waveform.shape[0] // win_len
+        #last_seg_len = len(noisy_sample_segments[-1])
+        #noisy_sample_segments[-1] = np.pad(noisy_sample_segments[-1], win_len - last_seg_len)
+        # last_offset = noisy_waveform.shape[0] // win_len
+        # if noisy_waveform.shape[0] % win_len != 0:
+        #     #res = noisy_waveform.shape[0] % win_len
             
-            last_segment = np.zeros(win_len)
-            non_zero_len = noisy_waveform.shape[0] - last_offset*win_len
-            last_segment[0: non_zero_len] = noisy_waveform[last_offset*win_len:]
             
-            #last_segment = np.pad(last_segment, win_len - last_segment.shape[0], mode='constant',  constant_values=(0))
+        #     last_segment = np.zeros(win_len)
+        #     non_zero_len = noisy_waveform.shape[0] - last_offset*win_len
+        #     last_segment[0: non_zero_len] = noisy_waveform[last_offset*win_len:]
             
-            noisy_sample_segments += [last_segment]
+        #     #last_segment = np.pad(last_segment, win_len - last_segment.shape[0], mode='constant',  constant_values=(0))
+            
+        #     noisy_sample_segments += [last_segment]
         
         
         
@@ -181,7 +183,7 @@ class Generator(nn.Module):
             
             segm_batch = segment.unsqueeze(0).unsqueeze(0).to(device)
             
-            out = self.forward(segm_batch, noise)[0,0,:].to('cpu')
+            out = self.forward(segm_batch, noise).reshape(-1).to('cpu')
             
             #model_out = self.emphasis(np.reshape(out.detach().numpy(), (1,1, out.shape[-1])), pre=False)[0,0,:]
             
@@ -194,4 +196,10 @@ class Generator(nn.Module):
         n_audio_samples = np.hstack(cleaned_segments)
         #n_audio_samples =  n_audio_samples * (1 / n_audio_samples.max())
         #n_audio_samples = self._denormalize_wave_minmax(n_audio_samples)
+        
+        
+        ts = 1/16e3
+        plt.plot(np.arange(0, n_audio_samples.shape[0] * ts, ts), n_audio_samples)
+        plt.show()
+        
         return n_audio_samples
