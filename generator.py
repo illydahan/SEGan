@@ -152,6 +152,16 @@ class Generator(nn.Module):
         win_gap = 2 << 13
         
         noisy_sample_segments = [noisy_waveform[i: i+win_len] for i in range(0, noisy_waveform.shape[0] - win_len, win_gap)]
+        
+        
+        # zero pad the last segment
+        if noisy_waveform.shape[0] % win_len > 0:
+            last_segment = noisy_waveform[win_len * len(noisy_sample_segments): ]
+            
+            padding_len = win_len - len(last_segment)
+            last_segment = np.pad(last_segment, (0, padding_len), mode='constant', constant_values = (0))
+            
+            noisy_sample_segments += [last_segment]
 
         #last_seg_len = len(noisy_sample_segments[-1])
         #noisy_sample_segments[-1] = np.pad(noisy_sample_segments[-1], win_len - last_seg_len)
@@ -176,9 +186,7 @@ class Generator(nn.Module):
             # segment = (2./65535.) * (segment - 32767) + 1
             
             #segment = self.emphasis(np.reshape(segment, (1,1, segment.shape[-1])))[0,0,:]
-            
 
-            
             segment = torch.from_numpy(segment).type(torch.FloatTensor)
             
             segm_batch = segment.unsqueeze(0).unsqueeze(0).to(device)
@@ -197,9 +205,6 @@ class Generator(nn.Module):
         #n_audio_samples =  n_audio_samples * (1 / n_audio_samples.max())
         #n_audio_samples = self._denormalize_wave_minmax(n_audio_samples)
         
-        
-        ts = 1/16e3
-        plt.plot(np.arange(0, n_audio_samples.shape[0] * ts, ts), n_audio_samples)
-        plt.show()
+    
         
         return n_audio_samples
