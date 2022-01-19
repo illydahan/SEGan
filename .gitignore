@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 checkpoints/
 __pycache__/
 .vscode/
 test.wav
 test_samples/
+=======
+sound_data/
+>>>>>>> 2904fe203556854820a0b44013c89568508712e7

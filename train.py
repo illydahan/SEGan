@@ -160,4 +160,8 @@ def train(sound_loader, gen, disc, gen_optim, disc_optim, writer):
     
     
     
+<<<<<<< HEAD
     print(f" Epoch: {epoch} Batch: {batch_idx}: \nGenerator loss: {gen_loss_history[-1]:.3f}, Discriminator loss: {disc_loss_history[-1]:.3f},")
+=======
+    print(f" Epoch: {epoch} Batch: {batch_idx}: \nGenerator loss: {gen_loss_history[-1]:.3f}, Discriminator loss: {disc_loss_history[-1]:.3f},")
+>>>>>>> 2904fe203556854820a0b44013c89568508712e7
