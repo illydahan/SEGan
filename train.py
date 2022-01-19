@@ -7,6 +7,8 @@ from Discriminator import Discriminator
 
 from tqdm import tqdm
 
+from utils import evalutate_batch_performance
+
 
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -43,7 +45,7 @@ best_ssnr = 0
 
 
 
-def train(sound_loader, gen, disc, gen_optim, disc_optim, writer):
+def train(sound_loader, gen, disc, gen_optim, disc_optim, writer, sound_data):
     for epoch in tqdm(range(n_epochs)):
         for batch_idx, (clean_batch, noisy_batch) in enumerate(sound_loader):
             # clean_batch = emphasis(clean_batch)
@@ -88,7 +90,7 @@ def train(sound_loader, gen, disc, gen_optim, disc_optim, writer):
             
             g_l1 = F.l1_loss(generated_output, clean_batch.unsqueeze(1))
             
-            gen_loss = g_lambda * torch.mean((disc_fake_out - 1) ** 2 ) +  g_l1 + mel_lambda * mrstft(generated_output, clean_batch.unsqueeze(1))
+            gen_loss =  torch.mean((disc_fake_out - 1) ** 2 ) +  g_l1*g_lambda
             
             #gen_optim.zero_grad()
             gen_loss.backward()
@@ -127,6 +129,7 @@ def train(sound_loader, gen, disc, gen_optim, disc_optim, writer):
                     
                     gen.eval()
                     
+                    curr_ssnr, curr_pesq = evalutate_batch_performance(gen, sound_data ,sound_loader, device=device)
                     
                         
                     if curr_ssnr > best_ssnr:
@@ -159,11 +162,10 @@ def train(sound_loader, gen, disc, gen_optim, disc_optim, writer):
                     running_disc_loss = 0
                 
             
-    
-    
-    
-<<<<<<< HEAD
     print(f" Epoch: {epoch} Batch: {batch_idx}: \nGenerator loss: {gen_loss_history[-1]:.3f}, Discriminator loss: {disc_loss_history[-1]:.3f},")
-=======
-    print(f" Epoch: {epoch} Batch: {batch_idx}: \nGenerator loss: {gen_loss_history[-1]:.3f}, Discriminator loss: {disc_loss_history[-1]:.3f},")
->>>>>>> 2904fe203556854820a0b44013c89568508712e7
+
+
+
+
+if __name__ == "__main__":
+    pass

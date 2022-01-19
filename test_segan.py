@@ -1,4 +1,4 @@
-from generator import Generator
+from Generator import Generator
 from scipy.io.wavfile import read, write
 
 import matplotlib.pyplot as plt
