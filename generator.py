@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+import numpy as np
 from Encoder import Encoder
 from Decoder import Decoder
 
@@ -15,10 +15,7 @@ class Generator(nn.Module):
     
     def forward(self, x, noise):
         enc_out = self.encoder(x)
-<<<<<<< HEAD
-=======
         
->>>>>>> TrainModule
         out = torch.cat((noise, enc_out), 1)
         
         out = self.decoder(out, self.encoder.skips)
@@ -26,9 +23,6 @@ class Generator(nn.Module):
         self.encoder.skips.clear()
         
         return out
-<<<<<<< HEAD
-    
-=======
     
     
     def _denormalize_wave_minmax(self, x):
@@ -116,4 +110,3 @@ class Generator(nn.Module):
     
         
         return n_audio_samples
->>>>>>> TrainModule
