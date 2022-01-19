@@ -4,6 +4,7 @@ __pycache__/
 .vscode/
 test.wav
 test_samples/
+runs/
 <<<<<<< HEAD
 =======
 sound_data/

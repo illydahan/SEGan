@@ -25,7 +25,7 @@ class ConvLayer(nn.Module):
         """
         for m in self.modules():
             if isinstance(m, nn.Conv1d) or isinstance(m, nn.ConvTranspose1d):
-                nn.init.xavier_normal(m.weight.data)
+                nn.init.xavier_normal_(m.weight.data)
 
 class TranConvLayer(nn.Module):
     def __init__(self, in_features, out_features):
@@ -41,7 +41,7 @@ class TranConvLayer(nn.Module):
         """
         for m in self.modules():
             if isinstance(m, nn.Conv1d) or isinstance(m, nn.ConvTranspose1d):
-                nn.init.xavier_normal(m.weight.data)
+                nn.init.xavier_normal_(m.weight.data)
         
     def forward(self, x):
         return self.parmRelu(self.conv(x))

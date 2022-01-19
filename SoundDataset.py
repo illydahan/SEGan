@@ -6,7 +6,7 @@ from scipy.io.wavfile import read
 from tqdm import tqdm
 
 class SoundDataset(Dataset):
-    def __init__(self, clean_dir, noisy_dir,reload=False ,transform=None):
+    def __init__(self, clean_dir, noisy_dir,reload=True ,transform=None):
         super().__init__()
         
         self.clean_dir = clean_dir
@@ -87,77 +87,73 @@ class SoundDataset(Dataset):
     
     
 
-import matplotlib.pyplot as plt
-import torchaudio
-import numpy as np
-import librosa
+# import matplotlib.pyplot as plt
+# import torchaudio
+# import numpy as np
+# import librosa
 
 
 
-def plot_spectrogram(spec, title=None, ylabel='freq_bin', aspect='auto', xmax=None):
-    fig, axs = plt.subplots(1,1)
-    axs.set_title(title or 'Spectogram (db)')
-    axs.set_ylabel(ylabel)
-    axs.set_xlabel('frame')
+# def plot_spectrogram(spec, title=None, ylabel='freq_bin', aspect='auto', xmax=None):
+#     fig, axs = plt.subplots(1,1)
+#     axs.set_title(title or 'Spectogram (db)')
+#     axs.set_ylabel(ylabel)
+#     axs.set_xlabel('frame')
     
-    im = axs.imshow(librosa.power_to_db(spec), origin='lower', aspect=aspect)
-    if xmax:
-        axs.set_xlim((0, xmax))
-    fig.colorbar(im, ax=axs)
-    plt.show(block=False)
-    plt.waitforbuttonpress()
+#     im = axs.imshow(librosa.power_to_db(spec), origin='lower', aspect=aspect)
+#     if xmax:
+#         axs.set_xlim((0, xmax))
+#     fig.colorbar(im, ax=axs)
+#     plt.show(block=False)
+#     plt.waitforbuttonpress()
     
 
-def plot_spectrogram_noisy_clean(spec: list, title=None, ylabel='freq_bin', aspect='auto', xmax=None):
-    fig, axs = plt.subplots(1,2)
-    axs[0].set_title(title or 'Spectogram (db) clean')
-    axs[0].set_ylabel(ylabel)
-    axs[0].set_xlabel('frame')
+# def plot_spectrogram_noisy_clean(spec: list, title=None, ylabel='freq_bin', aspect='auto', xmax=None):
+#     fig, axs = plt.subplots(1,2)
+#     axs[0].set_title(title or 'Spectogram (db) clean')
+#     axs[0].set_ylabel(ylabel)
+#     axs[0].set_xlabel('frame')
     
-    axs[1].set_title(title or 'Spectogram (db) noisy')
-    axs[1].set_ylabel(ylabel)
-    axs[1].set_xlabel('frame')
+#     axs[1].set_title(title or 'Spectogram (db) noisy')
+#     axs[1].set_ylabel(ylabel)
+#     axs[1].set_xlabel('frame')
     
-    im_clean = axs[0].imshow(librosa.power_to_db(spec[0]), origin='lower', aspect=aspect)
-    im_noisy = axs[1].imshow(librosa.power_to_db(spec[1]), origin='lower', aspect=aspect)
-    if xmax:
-        axs[0].set_xlim((0, xmax))
-        axs[1].set_xlim((0, xmax))
+#     im_clean = axs[0].imshow(librosa.power_to_db(spec[0]), origin='lower', aspect=aspect)
+#     im_noisy = axs[1].imshow(librosa.power_to_db(spec[1]), origin='lower', aspect=aspect)
+#     if xmax:
+#         axs[0].set_xlim((0, xmax))
+#         axs[1].set_xlim((0, xmax))
         
-    fig.colorbar(im_clean, ax=axs)
-    plt.show(block=False)
-    plt.waitforbuttonpress()
+#     fig.colorbar(im_clean, ax=axs)
+#     plt.show(block=False)
+#     plt.waitforbuttonpress()
     
-fs, test_sample = read('sound_data/clean/p226_008.wav')
-_, noisy_sample = read('sound_data/noisy/p226_008.wav')
+# fs, test_sample = read('sound_data/clean/p226_008.wav')
+# _, noisy_sample = read('sound_data/noisy/p226_008.wav')
 
-test_sample = torch.from_numpy(test_sample.astype(np.float32))
-noisy_sample = torch.from_numpy(noisy_sample.astype(np.float32))
-
-
-stft_sig = torch.stft(test_sample.type(torch.float32), fs // 2, onesided=True)
-
-win_len = 2 << 13
-hop = int(8e3)
-to_specto = torchaudio.transforms.Spectrogram(n_fft = test_sample.shape[0], win_length=win_len, hop_length=hop)
+# test_sample = torch.from_numpy(test_sample.astype(np.float32))
+# noisy_sample = torch.from_numpy(noisy_sample.astype(np.float32))
 
 
+# stft_sig = torch.stft(test_sample.type(torch.float32), fs // 2, onesided=True)
 
-import math
-spect_signal = to_specto(test_sample)
-noisy_sample = to_specto(noisy_sample)
-
-padded_sig_len = 2 ** math.ceil(math.log2(test_sample.shape[0] // 2  + 1))
-
-dummy_signal = torch.zeros(padded_sig_len)
-n_win = len([dummy_signal[i:i+win_len] for i in range(0, padded_sig_len, hop)])
-print(f"signal composed of {n_win} segments")
+# win_len = 2 << 13
+# hop = int(8e3)
+# to_specto = torchaudio.transforms.Spectrogram(n_fft = test_sample.shape[0], win_length=win_len, hop_length=hop)
 
 
-<<<<<<< HEAD
-plot_spectrogram_noisy_clean([spect_signal, noisy_sample])
 
-x = 1
-=======
-plot_spectrogram_noisy_clean([spect_signal, noisy_sample])
->>>>>>> TrainModule
+# import math
+# spect_signal = to_specto(test_sample)
+# noisy_sample = to_specto(noisy_sample)
+
+# padded_sig_len = 2 ** math.ceil(math.log2(test_sample.shape[0] // 2  + 1))
+
+# dummy_signal = torch.zeros(padded_sig_len)
+# n_win = len([dummy_signal[i:i+win_len] for i in range(0, padded_sig_len, hop)])
+# print(f"signal composed of {n_win} segments")
+
+
+# plot_spectrogram_noisy_clean([spect_signal, noisy_sample])
+
+# x = 1
