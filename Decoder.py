@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from WSEGan import TranConvLayer
+from BuildingBlocks import TranConvLayer
 
 
 

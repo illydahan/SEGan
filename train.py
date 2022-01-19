@@ -3,9 +3,9 @@ import torch.nn
 import torch.optim as optim
 import torch.functional as F
 from Generator import Generator
+from Discriminator import Discriminator
 
 from tqdm import tqdm
-
 
 
 
@@ -19,6 +19,8 @@ g_lambda = 100
 mel_lambda = 500
 
 
+gen = Generator()
+disc = Discriminator()
 
 gen_optim = optim.Adam(gen.parameters(), lr_gen)
 
