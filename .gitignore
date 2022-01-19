@@ -4,6 +4,12 @@ __pycache__/
 .vscode/
 test.wav
 test_samples/
+<<<<<<< HEAD
 =======
 sound_data/
 >>>>>>> 2904fe203556854820a0b44013c89568508712e7
+=======
+out.wav
+train.py
+test_samples/
+>>>>>>> TrainModule

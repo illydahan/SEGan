@@ -154,6 +154,10 @@ n_win = len([dummy_signal[i:i+win_len] for i in range(0, padded_sig_len, hop)])
 print(f"signal composed of {n_win} segments")
 
 
+<<<<<<< HEAD
 plot_spectrogram_noisy_clean([spect_signal, noisy_sample])
 
 x = 1
+=======
+plot_spectrogram_noisy_clean([spect_signal, noisy_sample])
+>>>>>>> TrainModule
