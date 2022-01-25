@@ -57,8 +57,8 @@ def plot_frequency_response(gen:Generator, clean_waveform, device='cuda'):
     axes[1].set_title("Frequency Response for iSNR = 5[dB]")
     
     axes[2].plot(freq, h[2])
-    axes[2].set_xlabel('H')
-    axes[2].set_ylabel('f [HZ]')
+    axes[2].set_ylabel('H')
+    axes[2].set_xlabel('f [HZ]')
     axes[2].set_title("Frequency Response for iSNR = 1[dB]")
     plt.show()
 
