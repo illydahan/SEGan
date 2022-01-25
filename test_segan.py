@@ -283,9 +283,9 @@ def main():
     gen.load_state_dict(torch.load(weights_file))
     
     
-    #plot_frequency_response(gen, clean_waveform, device='cpu')
+    plot_frequency_response(gen, clean_waveform, device='cpu')
     #plot_results_normal_noise(gen, clean_waveform, device='cpu')
-    clean_noisy(noisy_waveform, gen, out_file, clean_waveform=clean_waveform)
+    #clean_noisy(noisy_waveform, gen, out_file, clean_waveform=clean_waveform)
     
 
 if __name__ == '__main__':
