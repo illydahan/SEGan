@@ -12,14 +12,14 @@ from utils import evalutate_batch_performance
 
 
 
-def train(sound_loader, gen, disc, gen_optim, disc_optim, writer, sound_data, device, g_lambda, epoch):
-    best_pesq = 1
-    best_ssnr = 0
+def train(sound_loader, gen, disc, gen_optim, disc_optim, writer, sound_data, device, g_lambda, epoch, best_results):
+    best_pesq, best_ssnr = best_results
     
     
     running_disc_loss = 0
     running_gen_loss = 0
-    for batch_idx, (clean_batch, noisy_batch) in tqdm(enumerate(sound_loader), total=len(sound_loader)):
+    loop = tqdm(sound_loader)
+    for batch_idx, (clean_batch, noisy_batch) in enumerate(loop):
         # clean_batch = emphasis(clean_batch)
         # noisy_batch = emphasis(noisy_batch)
         
@@ -74,11 +74,11 @@ def train(sound_loader, gen, disc, gen_optim, disc_optim, writer, sound_data, de
             
             with torch.no_grad():
                 writer.add_scalar('Generator Loss', 
-                                running_gen_loss / 10,
+                                running_gen_loss / batch_idx,
                                 epoch * len(sound_loader) + batch_idx+ 1)
                 
                 writer.add_scalar('Discriminator Loss', 
-                                running_disc_loss / 10,
+                                running_disc_loss / batch_idx,
                                 epoch * len(sound_loader) + batch_idx + 1)
                 
                 
@@ -101,7 +101,7 @@ def train(sound_loader, gen, disc, gen_optim, disc_optim, writer, sound_data, de
                 
                     
                 if curr_ssnr > best_ssnr:
-                    print(f"\nEpoch: {epoch+1} new best SSNR: {curr_ssnr:.3f}\n")
+                    #print(f"\nEpoch: {epoch+1} new best SSNR: {curr_ssnr:.3f}\n")
                     best_ssnr = curr_ssnr
                     
                     torch.save(gen.state_dict(), r'checkpoints/generator_parms_ssnr.pth')
@@ -110,7 +110,7 @@ def train(sound_loader, gen, disc, gen_optim, disc_optim, writer, sound_data, de
                     torch.save(disc_optim.state_dict(), r'checkpoints/disc_optim_ssnr.pth')
                     
                 if curr_pesq > best_pesq:
-                    print(f"\nEpoch: {epoch+1} new best pesq: {curr_pesq:.3f}\n")
+                    #print(f"\nEpoch: {epoch+1} new best pesq: {curr_pesq:.3f}\n")
                     best_pesq = curr_pesq
                     
                     torch.save(gen.state_dict(), r'checkpoints/generator_parms_pesq.pth')
@@ -130,9 +130,11 @@ def train(sound_loader, gen, disc, gen_optim, disc_optim, writer, sound_data, de
                 # running_disc_loss = 0
                 
             
+        loop.set_postfix(gen_loss=gen_loss.item(), disc_loss = disc_loss.item(), ssnr=best_ssnr, pesq = best_pesq)
+        
     #print(f" Epoch: {epoch} Batch: {batch_idx}: \nGenerator loss: {gen_loss_history[-1]:.3f}, Discriminator loss: {disc_loss_history[-1]:.3f},")
     
-    return running_disc_loss / len(sound_loader), running_gen_loss / len(sound_loader)
+    return running_disc_loss / len(sound_loader), running_gen_loss / len(sound_loader), (best_pesq, best_ssnr)
 
 
 
@@ -155,6 +157,14 @@ if __name__ == "__main__":
 
     gen_optim = optim.Adam(gen.parameters(), lr_gen)
     disc_optim = optim.Adam(disc.parameters(), lr_disc)
+    
+    
+    
+    gen.load_state_dict(torch.load('checkpoints/generator_parms_ssnr.pth'))
+    gen_optim.load_state_dict(torch.load('checkpoints/gen_optim_ssnr.pth'))
+    
+    disc.load_state_dict(torch.load('checkpoints/disc_parms_ssnr.pth'))
+    disc_optim.load_state_dict(torch.load('checkpoints/disc_optim_ssnr.pth'))
 
     print("Loading dataset..")
     sound_ds = SoundDataset(r'sound_data/clean', r'sound_data/noisy')
@@ -164,7 +174,8 @@ if __name__ == "__main__":
     from torch.utils.tensorboard import SummaryWriter
     writer = SummaryWriter("runs/segan")
 
+    best_results = (0, 0)
     for epoch in range(n_epochs):
-        disc_loss , gen_loss = train(sound_loader, gen, disc, gen_optim, disc_optim, writer, sound_ds, device, g_lambda, epoch)
+        disc_loss , gen_loss, best_results = train(sound_loader, gen, disc, gen_optim, disc_optim, writer, sound_ds, device, g_lambda, epoch, best_results=best_results)
         print(f"Epoch: {epoch+1} | Generator loss: {gen_loss:.3f} | Discriminator loss: {disc_loss:.3f}")
         

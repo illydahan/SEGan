@@ -89,7 +89,7 @@ class Generator(nn.Module):
             
             #segment = self.emphasis(np.reshape(segment, (1,1, segment.shape[-1])))[0,0,:]
 
-            segment = torch.from_numpy(segment).type(torch.FloatTensor)
+            segment = torch.from_numpy(segment).type(torch.FloatTensor).to(device)
             
             segm_batch = segment.unsqueeze(0).unsqueeze(0).to(device)
             
@@ -109,4 +109,4 @@ class Generator(nn.Module):
         
     
         
-        return n_audio_samples
+        return n_audio_samples[:-padding_len]

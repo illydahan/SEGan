@@ -1,3 +1,4 @@
+import enum
 from Generator import Generator
 from scipy.io.wavfile import read, write
 
@@ -13,7 +14,117 @@ import scipy.signal as sps
 
 import argparse
 
+from utils import SSNR
 
+
+def plot_frequency_response(gen:Generator, clean_waveform, device='cuda'):
+    isnr = np.array([20, 5, 0]) # isnr in db range
+    rx = np.mean(clean_waveform ** 2)
+    
+    N = clean_waveform.shape[0]
+    fs = int(16e3)
+    freq = np.arange(0, fs//2, fs / N)
+    
+    h = []
+    for ii, i_snr in enumerate(isnr):
+        isnr_linear = (10 ** (i_snr / 20))
+        rn = rx / isnr_linear
+        
+        noise = np.random.normal(0, int(rn ** 0.5), N)
+        
+        noisy_signal = clean_waveform + noise
+        
+        noisy_freq = fft(noisy_signal)[:N//2]
+        
+        generated_signal = gen.clean(noisy_signal, device)
+        
+        gen_freq = fft(generated_signal)[:N//2]
+        
+        h += [np.abs(gen_freq) / np.abs(noisy_freq)]
+        
+    
+    fig, axes = plt.subplots(nrows=1, ncols=3)
+    
+    
+    axes[0].plot(freq, h[0])
+    axes[0].set_ylabel('H')
+    axes[0].set_xlabel('f [HZ]')
+    axes[0].set_title("Frequency Response for iSNR = 20[dB]")
+    
+    axes[1].plot(freq, h[1])
+    axes[1].set_ylabel('H')
+    axes[1].set_xlabel('f [HZ]')
+    axes[1].set_title("Frequency Response for iSNR = 5[dB]")
+    
+    axes[2].plot(freq, h[2])
+    axes[2].set_xlabel('H')
+    axes[2].set_ylabel('f [HZ]')
+    axes[2].set_title("Frequency Response for iSNR = 1[dB]")
+    plt.show()
+
+    
+    
+def plot_results_normal_noise(gen: Generator, clean_waveform, device='cuda'):
+    """
+    Plot SSNR, and MSE for normal noise
+
+    Args:
+        gen (Generator): [Generatir]
+        clean_waveform ([type]): [Clean Signal]
+    """
+    
+    isnr = np.arange(21) # isnr in db range
+    
+    mse_vec = np.zeros_like(isnr, dtype=np.float32)
+    ssnr_vec = np.zeros_like(isnr, dtype=np.float32)
+    
+    rx = np.mean(clean_waveform ** 2)
+    for ii, i_snr in enumerate(isnr):
+        
+        isnr_linear = (10 ** (i_snr / 20))
+        
+        
+        
+        rn = rx / isnr_linear
+        
+        noise = np.random.normal(0, int(rn ** 0.5), clean_waveform.shape[0])
+        
+        noisy_signal = clean_waveform + noise
+        
+        generated_signal = gen.clean(noisy_signal, device)
+        
+        mse = np.mean((clean_waveform - generated_signal) ** 2)
+        
+        ssnr = SSNR(clean_waveform, generated_signal)
+        
+        mse_vec[ii] = 20 * np.log10(mse)
+        ssnr_vec[ii] = 20*np.log10(ssnr)
+        
+
+    fig, axes = plt.subplots(nrows=1, ncols=2)
+    axes[0].plot(isnr, mse_vec)
+    axes[0].set_xlabel('iSNR [dB]')
+    axes[0].set_ylabel('MSE [dB]')
+    
+    axes[1].plot(isnr, ssnr_vec)
+    axes[1].set_xlabel('iSNR[dB]')
+    axes[1].set_ylabel('SSNR [dB]')
+    plt.show()
+
+def model_frequency_response(gen_signal_freq, input_signal_freq):
+    """
+        Return the frequency response of the model (Transfer function)
+    Args:
+        gen_signal_freq ([type]): [description]
+        input_signal_freq ([type]): [description]
+    """
+    
+    assert gen_signal_freq.shape == input_signal_freq.shape
+    
+    freq_response = np.abs(gen_signal_freq) / np.abs(input_signal_freq)
+    
+    return freq_response
+    
 def merge_generated(gen_signal, audio_len= 0):
     window_len = 2 << 13
     sample_gap = window_len
@@ -38,11 +149,11 @@ def clean_noisy(noisy_waveform, generator: Generator, out_file=None, device='cpu
 
     
     if len(noisy_waveform.shape) > 1:
-        noisy_waveform = noisy_waveform[..., 0]
+        noisy_waveform = noisy_waveform[..., 1]
         
     generated_signal = generator.clean(noisy_waveform, device=device)
     
-    generated_signal = merge_generated(generated_signal)
+    #generated_signal = merge_generated(generated_signal)
     
     if out_file is not None:
         write(out_file, sample_rate, generated_signal.astype(np.int16))
@@ -92,9 +203,9 @@ def clean_noisy(noisy_waveform, generator: Generator, out_file=None, device='cpu
 
     # Frequency domain - noisy
     Ts_noisy = t_noisy[1] - t_noisy[0]
-    noisy_freq = fft(noisy_waveform.astype(np.float32))[:N//2]
+    noisy_freq = fft(noisy_waveform.astype(np.float32))[:N // 2]
     noisy_freq_range = fftfreq(noisy_waveform.shape[0] , Ts_noisy)[:N // 2]
-
+    
     axes[1, fig_idx].plot(noisy_freq_range, (2/N) * np.abs(noisy_freq) )
     axes[1, fig_idx].set_title("Noisy Frequency")
 
@@ -109,6 +220,7 @@ def clean_noisy(noisy_waveform, generator: Generator, out_file=None, device='cpu
     Ts_gen = t_gen[1] - t_gen[0]
     gen_freq = fft(generated_signal.astype(np.float32))[:N//2]
     gen_freq_range = fftfreq(generated_signal.shape[0], Ts_gen)[:N // 2]
+    
     axes[1, fig_idx].plot(gen_freq_range, (2/N) * np.abs(gen_freq) )
     axes[1, fig_idx].set_title("Generated Frequency")
 
@@ -133,7 +245,7 @@ def make_noisy_sample(noisy_path, mu = None, sigma=None):
     
         
     if mu is not None and sigma is not None:
-        noisy_waveform += np.random.normal(mu, sigma, (noisy_waveform.shape[0]))
+        noisy_waveform += np.random.normal(mu, sigma, (noisy_waveform.shape[0])).astype(noisy_waveform.dtype)
 
     return noisy_waveform, clean_waveform
 
@@ -151,24 +263,33 @@ def main():
     
     # weights_file = args.weights
     
-    in_file = "test_samples/test_clean.wav"
-    weights_file = "checkpoints/generator_parms_ssnr.pth"
+    clean_file = "sound_data/clean/p226_007.wav"
+    noisy_file = "sound_data/noisy/p226_007.wav"
+    
+    _,noisy_waveform = read(noisy_file)
+    _,clean_waveform = read(clean_file)
+    
+    
+    weights_file = "checkpoints/generator_parms_pesq.pth"
     out_file = "out.wav"
 
     args = parser.parse_args()
     
     max_val = ((2 << 15) / 2) - 1
-    sigma = max_val * 0.1 
-    noisy_waveform, clean_waveform = make_noisy_sample(in_file, mu = 0, sigma = sigma)
+    sigma = max_val * 0.03
+    #noisy_waveform, clean_waveform = make_noisy_sample(in_file, mu = 0, sigma = sigma)
    
     gen = Generator().eval()
     gen.load_state_dict(torch.load(weights_file))
     
     
+    #plot_frequency_response(gen, clean_waveform, device='cpu')
+    #plot_results_normal_noise(gen, clean_waveform, device='cpu')
     clean_noisy(noisy_waveform, gen, out_file, clean_waveform=clean_waveform)
     
 
 if __name__ == '__main__':
+    
     main()
     
 

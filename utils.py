@@ -121,7 +121,7 @@ def evalutate_batch_performance(gen, sound_data, sound_loader, device):
             break                   
                                 
             
-    if n_valid_clean < 0:
+    if n_valid_clean > 0:
         curr_pesq = running_pesq_avg / n_valid_clean
     else:
         curr_pesq = 0
